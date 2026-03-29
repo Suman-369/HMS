@@ -10,6 +10,12 @@ const ROLE_REDIRECTS = {
   admin: "/admin/dashboard",
 };
 
+const CLIENT_ROLE_REDIRECTS = {
+  student: "http://localhost:5173/student",
+  staff: "http://localhost:5173/staff",
+  admin: "http://localhost:5173/admin",
+};
+
 // register functionality
 
 export async function register(req, res) {
@@ -97,16 +103,10 @@ export async function googleAuthCallback(req, res) {
 
     res.cookie("token", token);
 
-    return res.status(200).json({
-      message: "Login Successfully",
-      user: {
-        id: isUserAlreadyExist._id,
-        email: isUserAlreadyExist.email,
-        fullname: isUserAlreadyExist.fullname,
-        role: isUserAlreadyExist.role,
-      },
-      redirectTo: ROLE_REDIRECTS[isUserAlreadyExist.role],
-    });
+    return res.redirect(
+      CLIENT_ROLE_REDIRECTS[isUserAlreadyExist.role] ||
+        "http://localhost:5173/student",
+    );
   }
 
   const newUser = await userModel.create({
@@ -137,16 +137,9 @@ export async function googleAuthCallback(req, res) {
 
   res.cookie("token", token);
 
-  res.status(200).json({
-    message: "user created Successfully",
-    user: {
-      id: newUser._id,
-      email: newUser.email,
-      fullname: newUser.fullname,
-      role: newUser.role,
-    },
-    redirectTo: ROLE_REDIRECTS[newUser.role] || ROLE_REDIRECTS.student,
-  });
+  return res.redirect(
+    CLIENT_ROLE_REDIRECTS[newUser.role] || "http://localhost:5173/student",
+  );
 }
 
 export async function login(req, res) {
