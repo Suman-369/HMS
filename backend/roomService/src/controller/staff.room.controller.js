@@ -1,5 +1,6 @@
 import Room from "../models/room.model.js";
 import { uploadImage } from "../service/imagekit.service.js";
+import { getAuthUserModel } from "../models/userRef.model.js";
 import {
   authOccupantsPopulate,
   formatOccupantEntry,
@@ -98,6 +99,7 @@ export async function createRoom(req, res) {
     amenities: payload.amenities ?? [],
     images: resolvedImageUrls,
     capacity: payload.capacity,
+    price: payload.price ?? 0,
     status: payload.status ?? "available",
     occupants,
   });
@@ -143,6 +145,7 @@ export async function updateRoom(req, res) {
   if (floor !== undefined) room.floor = floor;
   if (description !== undefined) room.description = description;
   if (amenities !== undefined) room.amenities = amenities;
+  if (price !== undefined) room.price = price;
   if (images !== undefined) {
     const resolvedImageUrls = await resolveImageUrls(images);
     room.images = resolvedImageUrls;
@@ -179,6 +182,20 @@ export async function deleteRoom(req, res) {
   }
   await room.deleteOne();
   return res.json({ message: "Room deleted" });
+}
+
+// List all users for occupant dropdown
+export async function listUsers(req, res) {
+  try {
+    const User = getAuthUserModel();
+    const users = await User.find()
+      .select("_id email fullname role")
+      .lean();
+    return res.json({ users });
+  } catch (err) {
+    console.error("listUsers error", err);
+    return res.status(500).json({ message: "Failed to fetch users" });
+  }
 }
 
 export async function uploadImageHandler(req, res) {

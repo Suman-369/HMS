@@ -21,6 +21,7 @@ const roomSchema = new mongoose.Schema(
     amenities: [{ type: String, trim: true }],
     images: [{ type: String, trim: true }],
     capacity: { type: Number, required: true, min: 1 },
+    price: { type: Number, default: 0 }, // price in INR
     occupants: { type: [occupantSchema], default: [] },
     status: {
       type: String,

@@ -13,6 +13,7 @@ const router = express.Router();
 router.use(authenticate, requireRoles("staff", "admin"));
 
 router.get("/rooms", staffRoom.listAllRooms);
+router.get("/users", staffRoom.listUsers);
 router.post("/rooms", Validation.createRoomRules, staffRoom.createRoom);
 router.get(
   "/rooms/:id",
