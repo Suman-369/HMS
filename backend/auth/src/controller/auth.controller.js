@@ -103,10 +103,17 @@ export async function googleAuthCallback(req, res) {
 
     res.cookie("token", token);
 
-    return res.redirect(
-      CLIENT_ROLE_REDIRECTS[isUserAlreadyExist.role] ||
-        "http://localhost:5173/student",
-    );
+    const userPayload = {
+      id: isUserAlreadyExist._id,
+      email: isUserAlreadyExist.email,
+      fullname: isUserAlreadyExist.fullname,
+      role: isUserAlreadyExist.role,
+    };
+
+    const redirectUrl = new URL("http://localhost:5173/auth/success");
+    redirectUrl.searchParams.append("user", JSON.stringify(userPayload));
+    
+    return res.redirect(redirectUrl.toString());
   }
 
   const newUser = await userModel.create({
@@ -137,9 +144,17 @@ export async function googleAuthCallback(req, res) {
 
   res.cookie("token", token);
 
-  return res.redirect(
-    CLIENT_ROLE_REDIRECTS[newUser.role] || "http://localhost:5173/student",
-  );
+  const userPayload = {
+    id: newUser._id,
+    email: newUser.email,
+    fullname: newUser.fullname,
+    role: newUser.role,
+  };
+
+  const redirectUrl = new URL("http://localhost:5173/auth/success");
+  redirectUrl.searchParams.append("user", JSON.stringify(userPayload));
+  
+  return res.redirect(redirectUrl.toString());
 }
 
 export async function login(req, res) {
@@ -188,4 +203,27 @@ export async function login(req, res) {
     },
     redirectTo: ROLE_REDIRECTS[user.role],
   });
+}
+
+export async function logout(req, res) {
+  res.clearCookie("token");
+
+  // If express-session & passport is used, we must fully destroy the session
+  if (req.logout) {
+    req.logout((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+      }
+      if (req.session) {
+        req.session.destroy(() => {
+          res.clearCookie("connect.sid");
+          return res.status(200).json({ message: "Logout Successfully" });
+        });
+      } else {
+        return res.status(200).json({ message: "Logout Successfully" });
+      }
+    });
+  } else {
+    return res.status(200).json({ message: "Logout Successfully" });
+  }
 }

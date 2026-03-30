@@ -8,7 +8,7 @@ import {
 function availableFilter() {
   return {
     status: { $ne: "maintenance" },
-    $expr: { $lt: [{ $size: "$occupants" }, "$capacity"] },
+    $expr: { $lt: [{ $size: { $ifNull: ["$occupants", []] } }, "$capacity"] },
   };
 }
 

@@ -14,10 +14,13 @@
   "description": "",
   "dependencies": {
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.7",
     "express": "^5.2.1",
     "express-validator": "^7.2.1",
+    "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^9.3.3"
+    "mongoose": "^9.3.3",
+    "multer": "^2.1.1"
   }
 }

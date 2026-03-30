@@ -28,4 +28,6 @@ router.get(
   authController.googleAuthCallback,
 );
 
+router.post("/logout", authController.logout);
+
 export default router;

@@ -3,6 +3,10 @@ import * as staffRoom from "../controller/staff.room.controller.js";
 import * as application from "../controller/application.controller.js";
 import { authenticate, requireRoles } from "../middlewares/auth.middleware.js";
 import * as Validation from "../middlewares/validation.middleware.js";
+import multer from "multer";
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 const router = express.Router();
 
@@ -30,6 +34,11 @@ router.get(
   "/applications",
   Validation.listApplicationsQuery,
   application.listAllApplications,
+);
+router.post(
+  "/upload-image",
+  upload.single("image"),
+  staffRoom.uploadImageHandler
 );
 router.patch(
   "/applications/:id/decision",

@@ -1,4 +1,5 @@
 import Room from "../models/room.model.js";
+import { uploadImage } from "../service/imagekit.service.js";
 import {
   authOccupantsPopulate,
   formatOccupantEntry,
@@ -12,6 +13,28 @@ function mapRoomWithOccupants(r) {
     vacancy: Math.max(0, r.capacity - occ.length),
     occupants: occ.map(formatOccupantEntry),
   };
+}
+
+async function resolveImageUrls(images = []) {
+  if (!Array.isArray(images)) return [];
+
+  const resolved = [];
+  for (const image of images) {
+    if (!image) continue;
+
+    if (typeof image === "string" && image.startsWith("data:")) {
+      // Incoming base64 data URL from frontend, upload to ImageKit
+      const [, meta] = image.split(",");
+      const fileName = `room-${Date.now()}.png`;
+      const result = await uploadImage(meta, fileName);
+      if (result?.url) resolved.push(result.url);
+    } else if (typeof image === "string") {
+      // Already a URL, leave as-is
+      resolved.push(image);
+    }
+  }
+
+  return resolved;
 }
 
 export async function listAllRooms(req, res) {
@@ -39,7 +62,9 @@ export async function createRoom(req, res) {
     return res.status(409).json({ message: "Room number already exists" });
   }
 
-  const rawOccupants = Array.isArray(payload.occupants) ? payload.occupants : [];
+  const rawOccupants = Array.isArray(payload.occupants)
+    ? payload.occupants
+    : [];
   const occupants = rawOccupants.map((o) => ({
     userId: o.userId,
   }));
@@ -63,13 +88,15 @@ export async function createRoom(req, res) {
     }
   }
 
+  const resolvedImageUrls = await resolveImageUrls(payload.images ?? []);
+
   const room = await Room.create({
     roomNumber: payload.roomNumber,
     block: payload.block ?? "",
     floor: payload.floor ?? "",
     description: payload.description ?? "",
     amenities: payload.amenities ?? [],
-    images: payload.images ?? [],
+    images: resolvedImageUrls,
     capacity: payload.capacity,
     status: payload.status ?? "available",
     occupants,
@@ -116,7 +143,10 @@ export async function updateRoom(req, res) {
   if (floor !== undefined) room.floor = floor;
   if (description !== undefined) room.description = description;
   if (amenities !== undefined) room.amenities = amenities;
-  if (images !== undefined) room.images = images;
+  if (images !== undefined) {
+    const resolvedImageUrls = await resolveImageUrls(images);
+    room.images = resolvedImageUrls;
+  }
   if (capacity !== undefined) {
     if (capacity < (room.occupants?.length || 0)) {
       return res.status(400).json({
@@ -149,4 +179,35 @@ export async function deleteRoom(req, res) {
   }
   await room.deleteOne();
   return res.json({ message: "Room deleted" });
+}
+
+export async function uploadImageHandler(req, res) {
+  try {
+    if (!req.file) {
+      console.error("uploadImageHandler: no file received", req.body);
+      return res.status(400).json({ message: "No image file provided" });
+    }
+
+    console.log("uploadImageHandler file received", {
+      fieldname: req.file.fieldname,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+    });
+
+    const result = await uploadImage(req.file.buffer, req.file.originalname);
+    return res.status(200).json({
+      message: "Image uploaded successfully",
+      url: result.url,
+      fileId: result.fileId,
+    });
+  } catch (error) {
+    console.error("uploadImageHandler error", error);
+    return res
+      .status(500)
+      .json({
+        message: "Image upload failed",
+        error: error.message || "unknown",
+      });
+  }
 }
