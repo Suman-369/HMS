@@ -20,4 +20,6 @@ router.patch(
   controller.updateComplaintAction,
 );
 
+router.delete("/complaints/:id", mongoIdParam, controller.deleteComplaintById);
+
 export default router;

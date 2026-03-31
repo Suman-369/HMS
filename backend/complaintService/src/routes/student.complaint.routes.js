@@ -25,4 +25,11 @@ router.get(
   controller.getMyComplaintById,
 );
 
+router.delete(
+  "/complaints/:id",
+  requireRoles("student"),
+  mongoIdParam,
+  controller.deleteOwnComplaint,
+);
+
 export default router;

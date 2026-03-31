@@ -54,7 +54,10 @@ function toComplaintJson(doc, studentRef = null) {
 export async function listAllComplaints(req, res, next) {
   try {
     const status = req.query.status;
-    const page = Math.max(1, Number.parseInt(String(req.query.page ?? "1"), 10) || 1);
+    const page = Math.max(
+      1,
+      Number.parseInt(String(req.query.page ?? "1"), 10) || 1,
+    );
     const limit = Math.min(
       100,
       Math.max(1, Number.parseInt(String(req.query.limit ?? "20"), 10) || 20),
@@ -83,8 +86,26 @@ export async function listAllComplaints(req, res, next) {
 
     res.json({
       complaints,
-      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteComplaintById(req, res, next) {
+  try {
+    const { id } = req.params;
+    const deleted = await complaintModel.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Complaint not found" });
+    }
+    res.json({ message: "Complaint deleted successfully" });
   } catch (err) {
     next(err);
   }
@@ -92,7 +113,9 @@ export async function listAllComplaints(req, res, next) {
 
 export async function getComplaintById(req, res, next) {
   try {
-    const doc = await applyStudentPopulate(complaintModel.findById(req.params.id)).lean();
+    const doc = await applyStudentPopulate(
+      complaintModel.findById(req.params.id),
+    ).lean();
 
     if (!doc) {
       return res.status(404).json({ message: "Complaint not found" });
@@ -134,7 +157,9 @@ export async function updateComplaintAction(req, res, next) {
 
     await doc.save();
 
-    const populated = await applyStudentPopulate(complaintModel.findById(doc._id)).lean();
+    const populated = await applyStudentPopulate(
+      complaintModel.findById(doc._id),
+    ).lean();
 
     const sid = populated.studentId;
     const plain = { ...populated, studentId: sid?._id ?? populated.studentId };

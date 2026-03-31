@@ -10,7 +10,11 @@ async function validate(req, res, next) {
 }
 
 export const createComplaintRules = [
-  body("title").trim().notEmpty().isLength({ max: 200 }).withMessage("title is required (max 200 chars)"),
+  body("title")
+    .trim()
+    .notEmpty()
+    .isLength({ max: 200 })
+    .withMessage("title is required (max 200 chars)"),
   body("description")
     .trim()
     .notEmpty()
@@ -35,6 +39,10 @@ export const createComplaintRules = [
     .trim()
     .isLength({ max: 2048 })
     .withMessage("Each attachment URL must be a string"),
+  body("attachmentBase64")
+    .optional()
+    .isString()
+    .withMessage("attachmentBase64 must be a base64 encoded string"),
   validate,
 ];
 
