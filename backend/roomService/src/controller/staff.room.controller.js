@@ -128,8 +128,12 @@ export async function updateRoom(req, res) {
     amenities,
     images,
     capacity,
+    price,
     status,
+    occupants: payloadOccupants,
   } = req.body;
+
+  const targetCapacity = capacity !== undefined ? capacity : room.capacity;
 
   if (roomNumber !== undefined) {
     const clash = await Room.findOne({
@@ -145,6 +149,41 @@ export async function updateRoom(req, res) {
   if (floor !== undefined) room.floor = floor;
   if (description !== undefined) room.description = description;
   if (amenities !== undefined) room.amenities = amenities;
+  if (payloadOccupants !== undefined) {
+    const newOccupants = Array.isArray(payloadOccupants)
+      ? payloadOccupants.map((o) => ({ userId: o.userId }))
+      : [];
+
+    if (newOccupants.length > targetCapacity) {
+      return res.status(400).json({
+        message: "Occupants count cannot exceed room capacity",
+      });
+    }
+
+    const occupantIds = newOccupants.map((o) => o.userId);
+    if (occupantIds.length > 0) {
+      const conflicts = await Room.find({
+        _id: { $ne: room._id },
+        "occupants.userId": { $in: occupantIds },
+      })
+        .select("roomNumber")
+        .lean();
+
+      if (conflicts.length > 0) {
+        return res.status(400).json({
+          message:
+            "One or more users are already assigned to another room. Remove them from the other room first.",
+          conflicts: conflicts.map((c) => ({
+            roomId: c._id,
+            roomNumber: c.roomNumber,
+          })),
+        });
+      }
+    }
+
+    room.occupants = newOccupants;
+  }
+
   if (price !== undefined) room.price = price;
   if (images !== undefined) {
     const resolvedImageUrls = await resolveImageUrls(images);
@@ -188,9 +227,7 @@ export async function deleteRoom(req, res) {
 export async function listUsers(req, res) {
   try {
     const User = getAuthUserModel();
-    const users = await User.find()
-      .select("_id email fullname role")
-      .lean();
+    const users = await User.find().select("_id email fullname role").lean();
     return res.json({ users });
   } catch (err) {
     console.error("listUsers error", err);
@@ -220,11 +257,9 @@ export async function uploadImageHandler(req, res) {
     });
   } catch (error) {
     console.error("uploadImageHandler error", error);
-    return res
-      .status(500)
-      .json({
-        message: "Image upload failed",
-        error: error.message || "unknown",
-      });
+    return res.status(500).json({
+      message: "Image upload failed",
+      error: error.message || "unknown",
+    });
   }
 }

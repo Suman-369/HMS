@@ -9,6 +9,7 @@ function formatComplaint(docOrLean) {
     title: o.title,
     description: o.description,
     category: o.category,
+    priority: o.priority,
     status: o.status,
     attachmentUrls: o.attachmentUrls ?? [],
     staffNote: o.staffNote ?? null,
@@ -21,7 +22,7 @@ function formatComplaint(docOrLean) {
 
 export async function createComplaint(req, res, next) {
   try {
-    const { title, description, category, attachmentUrls } = req.body;
+    const { title, description, category, priority, attachmentUrls } = req.body;
     const studentId = new mongoose.Types.ObjectId(req.user.id);
 
     const doc = await complaintModel.create({
@@ -29,6 +30,7 @@ export async function createComplaint(req, res, next) {
       title,
       description,
       category: category ?? "other",
+      priority: priority ?? "medium",
       attachmentUrls: Array.isArray(attachmentUrls) ? attachmentUrls : [],
     });
 

@@ -20,6 +20,11 @@ export const createComplaintRules = [
     .optional()
     .isIn(["room", "service", "facility", "other"])
     .withMessage("Invalid category"),
+  body("priority")
+    .trim()
+    .notEmpty()
+    .isIn(["low", "medium", "high"])
+    .withMessage("priority is required and must be low, medium or high"),
   body("attachmentUrls")
     .optional()
     .isArray()

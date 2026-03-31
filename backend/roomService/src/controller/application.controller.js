@@ -6,7 +6,12 @@ import { sameId } from "../utils/id.util.js";
 
 export async function applyForRoom(req, res) {
   const studentId = req.user.id;
-  const { roomId, message } = req.body;
+  const { roomId, studentDetails, message } = req.body;
+
+  // Validate required fields
+  if (!studentDetails || !studentDetails.name || !studentDetails.rollNo || !studentDetails.courseStream || !studentDetails.mobile) {
+    return res.status(400).json({ message: "All student details are required" });
+  }
 
   const assignedElsewhere = await Room.findOne({
     "occupants.userId": studentId,
@@ -38,12 +43,13 @@ export async function applyForRoom(req, res) {
     const application = await RoomApplication.create({
       studentId,
       room: room._id,
+      studentDetails,
       message: message ?? "",
       status: "pending",
     });
     await application.populate([{ path: "room" }, authStudentPopulate()]);
     return res.status(201).json({
-      message: "Application submitted",
+      message: "Application submitted successfully",
       application,
     });
   } catch (err) {
@@ -52,17 +58,18 @@ export async function applyForRoom(req, res) {
         message: "You already have a pending application for this room",
       });
     }
+    console.error("Apply error:", err);
     throw err;
   }
 }
 
 export async function listMyApplications(req, res) {
   const applications = await RoomApplication.find({ studentId: req.user.id })
-    .populate("room")
-    .populate(authStudentPopulate())
+    .populate([{ path: "room" }, authStudentPopulate(), "studentDetails"])
     .sort({ createdAt: -1 })
     .lean();
   return res.json({ applications });
+
 }
 
 export async function listAllApplications(req, res) {
@@ -73,11 +80,11 @@ export async function listAllApplications(req, res) {
   }
 
   const applications = await RoomApplication.find(filter)
-    .populate("room")
-    .populate(authStudentPopulate())
+    .populate([{ path: "room" }, authStudentPopulate(), "studentDetails"])
     .sort({ createdAt: -1 })
     .lean();
   return res.json({ applications });
+
 }
 
 export async function decideApplication(req, res) {

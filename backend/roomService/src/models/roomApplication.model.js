@@ -9,6 +9,12 @@ const roomApplicationSchema = new mongoose.Schema(
       index: true,
     },
     room: { type: mongoose.Schema.Types.ObjectId, ref: "Room", required: true },
+    studentDetails: {
+      name: { type: String, required: true },
+      rollNo: { type: String, required: true },
+      courseStream: { type: String, required: true },
+      mobile: { type: String, required: true, match: [/^\+?\d{10,15}$/, "Invalid mobile number"] }
+    },
     message: { type: String, default: "", maxlength: 2000 },
     status: {
       type: String,

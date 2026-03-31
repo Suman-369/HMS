@@ -69,7 +69,12 @@ export async function register(req, res) {
     role: user.role,
   });
 
-  res.cookie("token", token);
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "none",
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  });
 
   res.status(201).json({
     message: "Registration Successfully",
@@ -79,6 +84,7 @@ export async function register(req, res) {
       fullname: user.fullname,
       role: user.role,
     },
+    token,
     redirectTo: ROLE_REDIRECTS[user.role],
   });
 }
@@ -101,7 +107,12 @@ export async function googleAuthCallback(req, res) {
       { expiresIn: "7d" },
     );
 
-    res.cookie("token", token);
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "none",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
 
     const userPayload = {
       id: isUserAlreadyExist._id,
@@ -112,7 +123,8 @@ export async function googleAuthCallback(req, res) {
 
     const redirectUrl = new URL("http://localhost:5173/auth/success");
     redirectUrl.searchParams.append("user", JSON.stringify(userPayload));
-    
+    redirectUrl.searchParams.append("token", token);
+
     return res.redirect(redirectUrl.toString());
   }
 
@@ -142,7 +154,12 @@ export async function googleAuthCallback(req, res) {
     { expiresIn: "7d" },
   );
 
-  res.cookie("token", token);
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
   const userPayload = {
     id: newUser._id,
@@ -153,7 +170,8 @@ export async function googleAuthCallback(req, res) {
 
   const redirectUrl = new URL("http://localhost:5173/auth/success");
   redirectUrl.searchParams.append("user", JSON.stringify(userPayload));
-  
+  redirectUrl.searchParams.append("token", token);
+
   return res.redirect(redirectUrl.toString());
 }
 
@@ -191,7 +209,12 @@ export async function login(req, res) {
     { expiresIn: "7d" },
   );
 
-  res.cookie("token", token);
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
   res.status(200).json({
     message: "Login Successfully",
@@ -201,12 +224,17 @@ export async function login(req, res) {
       fullname: user.fullname,
       role: user.role,
     },
+    token,
     redirectTo: ROLE_REDIRECTS[user.role],
   });
 }
 
 export async function logout(req, res) {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "none",
+  });
 
   // If express-session & passport is used, we must fully destroy the session
   if (req.logout) {

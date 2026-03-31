@@ -36,6 +36,7 @@ function toComplaintJson(doc, studentRef = null) {
     title: o.title,
     description: o.description,
     category: o.category,
+    priority: o.priority,
     status: o.status,
     attachmentUrls: o.attachmentUrls ?? [],
     staffNote: o.staffNote ?? null,
