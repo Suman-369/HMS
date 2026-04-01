@@ -23,6 +23,10 @@ router.delete("/rooms/:id", Validation.mongoIdParam, staffRoom.deleteRoom);
 
 router.post("/notices", Validation.createNoticeRules, notice.createNotice);
 router.get("/notices", notice.listNotices);
+router.put("/notices/:id", Validation.createNoticeRules, notice.updateNotice);
+router.delete("/notices/:id", Validation.mongoIdParam, notice.deleteNotice);
+
+router.get("/activities", staffRoom.getRecentActivities);
 
 router.get(
   "/applications",
@@ -41,3 +45,4 @@ router.patch(
 );
 
 export default router;
+

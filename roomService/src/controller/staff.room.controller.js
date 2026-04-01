@@ -289,3 +289,100 @@ export async function uploadImageHandler(req, res) {
     });
   }
 }
+
+export async function getRecentActivities(req, res) {
+  try {
+    // Fetch recent room applications (all statuses, recent changes)
+    const recentApps = await RoomApplication.find()
+      .populate("room", "roomNumber block")
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .lean();
+
+    // Fetch recent complaints from complaint service
+    const complaintRes = await fetch(
+      "http://localhost:3003/api/staff/complaints?limit=5&sort=-updatedAt",
+      {
+        headers: {
+          Authorization: req.headers.authorization,
+        },
+      },
+    );
+    const complaintData = await complaintRes.json();
+    const recentComplaints = complaintData.complaints || [];
+
+    // Format unified activities
+    const activities = [];
+
+    // Applications
+    recentApps.forEach((app) => {
+      const studentName = app.studentDetails?.name || "Unknown Student";
+      const roomNum = app.room?.roomNumber || "Unknown Room";
+
+      activities.push({
+        type: "application",
+        title:
+          app.status === "pending"
+            ? "New Room Application"
+            : `${app.status.charAt(0).toUpperCase() + app.status.slice(1)} Application`,
+        description: `${studentName} ${app.status === "pending" ? "applied for" : app.status} ${roomNum} No Room`,
+        timestamp: app.updatedAt || app.createdAt,
+        iconColor: "blue",
+        studentName,
+        roomNumber: roomNum,
+        status: app.status,
+        id: app._id,
+      });
+    });
+
+    // Complaints
+    recentComplaints.forEach((comp) => {
+      const studentObj = comp.student || {};
+
+      let studentName = "Unknown Student";
+      if (studentObj.fullname) {
+        if (typeof studentObj.fullname === "object") {
+          studentName =
+            `${studentObj.fullname.firstName || ""} ${studentObj.fullname.lastName || ""}`.trim();
+        } else if (typeof studentObj.fullname === "string") {
+          studentName = studentObj.fullname;
+        }
+      } else if (studentObj.name) {
+        studentName = studentObj.name;
+      } else if (studentObj.id) {
+        studentName = `Student ${studentObj.id.slice(-4)}`;
+      }
+
+      const isNew =
+        !comp.updatedAt ||
+        new Date(comp.updatedAt).getTime() ===
+          new Date(comp.createdAt).getTime();
+
+      activities.push({
+        type: "complaint",
+        title: isNew ? "New Complaint" : "Complaint Updated",
+        description: `${comp.title.slice(0, 50)}${comp.title.length > 50 ? "..." : ""}${!isNew ? ` - ${comp.status}` : ""} by ${studentName}`,
+        timestamp: comp.updatedAt || comp.createdAt,
+        iconColor: "orange",
+        studentName,
+        complaintTitle: comp.title,
+        status: comp.status,
+        id: comp.id,
+      });
+    });
+
+    // Room assignments (recent occupant changes via recent approved apps)
+    // Handled in application approved above
+
+    // Sort by timestamp desc, take top 5
+    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const topActivities = activities.slice(0, 5);
+
+    return res.json({ activities: topActivities });
+  } catch (err) {
+    console.error("getRecentActivities error:", err);
+    return res
+      .status(500)
+      .json({ message: "Failed to fetch recent activities" });
+  }
+}

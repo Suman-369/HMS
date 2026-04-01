@@ -107,12 +107,12 @@ export async function googleAuthCallback(req, res) {
       { expiresIn: "7d" },
     );
 
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "none",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "none",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
     const userPayload = {
       id: isUserAlreadyExist._id,
@@ -229,3 +229,9 @@ export async function login(req, res) {
   });
 }
 
+export function logout(req, res) {
+  res.clearCookie("token");
+  res.status(200).json({
+    message: "Logout Successfully",
+  });
+}
