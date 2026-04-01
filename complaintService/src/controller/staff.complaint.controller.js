@@ -98,6 +98,17 @@ export async function listAllComplaints(req, res, next) {
   }
 }
 
+export async function getActiveComplaintCount(req, res, next) {
+  try {
+    const activeComplaints = await complaintModel.countDocuments({
+      status: { $in: ["pending", "in_progress"] },
+    });
+    res.json({ activeComplaints });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function deleteComplaintById(req, res, next) {
   try {
     const { id } = req.params;

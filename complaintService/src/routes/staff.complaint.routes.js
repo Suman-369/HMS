@@ -12,6 +12,7 @@ const router = express.Router();
 
 router.use(authenticate, ensureAuthUser, requireRoles("staff", "admin"));
 
+router.get("/complaints/stats", controller.getActiveComplaintCount);
 router.get("/complaints", listComplaintsQuery, controller.listAllComplaints);
 router.get("/complaints/:id", mongoIdParam, controller.getComplaintById);
 router.patch(

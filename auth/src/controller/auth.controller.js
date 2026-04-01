@@ -229,29 +229,3 @@ export async function login(req, res) {
   });
 }
 
-export async function logout(req, res) {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: false,
-    sameSite: "none",
-  });
-
-  // If express-session & passport is used, we must fully destroy the session
-  if (req.logout) {
-    req.logout((err) => {
-      if (err) {
-        console.error("Logout error:", err);
-      }
-      if (req.session) {
-        req.session.destroy(() => {
-          res.clearCookie("connect.sid");
-          return res.status(200).json({ message: "Logout Successfully" });
-        });
-      } else {
-        return res.status(200).json({ message: "Logout Successfully" });
-      }
-    });
-  } else {
-    return res.status(200).json({ message: "Logout Successfully" });
-  }
-}

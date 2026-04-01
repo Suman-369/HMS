@@ -1,4 +1,5 @@
 import Room from "../models/room.model.js";
+import RoomApplication from "../models/roomApplication.model.js";
 import { uploadImage } from "../service/imagekit.service.js";
 import { getAuthUserModel } from "../models/userRef.model.js";
 import {
@@ -232,6 +233,31 @@ export async function listUsers(req, res) {
   } catch (err) {
     console.error("listUsers error", err);
     return res.status(500).json({ message: "Failed to fetch users" });
+  }
+}
+
+export async function getStaffDashboardStats(req, res) {
+  try {
+    const User = getAuthUserModel();
+    const totalStudents = await User.countDocuments({ role: "student" });
+
+    const rooms = await Room.find().lean();
+    const availableRooms = rooms.filter((room) => {
+      const occupied = Array.isArray(room.occupants)
+        ? room.occupants.length
+        : 0;
+      const vacancy = (room.capacity || 0) - occupied;
+      return room.status === "available" && vacancy > 0;
+    }).length;
+
+    const newApplications = await RoomApplication.countDocuments({
+      status: "pending",
+    });
+
+    return res.json({ totalStudents, availableRooms, newApplications });
+  } catch (err) {
+    console.error("getStaffDashboardStats error", err);
+    return res.status(500).json({ message: "Failed to fetch dashboard stats" });
   }
 }
 

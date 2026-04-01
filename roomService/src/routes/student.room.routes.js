@@ -1,5 +1,6 @@
 import express from "express";
 import * as studentRoom from "../controller/student.room.controller.js";
+import * as notice from "../controller/notice.controller.js";
 import * as application from "../controller/application.controller.js";
 import { authenticate, requireRoles } from "../middlewares/auth.middleware.js";
 import {
@@ -27,6 +28,7 @@ router.get(
 );
 
 router.get("/me/room", requireRoles("student"), studentRoom.getMyRoom);
+router.get("/notices", requireRoles(...browseRoles), notice.listNotices);
 router.get(
   "/applications",
   requireRoles("student"),

@@ -77,6 +77,26 @@ export const applyForRoomRules = [
   validate,
 ];
 
+export const createNoticeRules = [
+  body("title").trim().notEmpty().withMessage("Title is required").isLength({ max: 200 }),
+  body("type")
+    .trim()
+    .notEmpty()
+    .withMessage("Type is required")
+    .isIn(["general", "event", "maintenance", "academic"])
+    .withMessage("Type must be general, event, maintenance, or academic"),
+  body("description")
+    .trim()
+    .notEmpty()
+    .withMessage("Description is required")
+    .isLength({ max: 2000 })
+    .withMessage("Description must be under 2000 chars"),
+  body("relevancePercentage")
+    .isFloat({ min: 0, max: 100 })
+    .withMessage("relevancePercentage must be between 0 and 100"),
+  validate,
+];
+
 export const listApplicationsQuery = [
   query("status")
     .optional()
