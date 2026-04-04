@@ -10,18 +10,23 @@ async function validate(req, res, next) {
 }
 
 export const createRoomRules = [
-  body("roomNumber").trim().notEmpty().withMessage("roomNumber is required"),
-  body("capacity").isInt({ min: 1 }).withMessage("capacity must be a positive integer"),
-  body("block").optional().trim(),
-  body("floor").optional().trim(),
-  body("description").optional().trim(),
+  body("roomNumber").notEmpty().withMessage("roomNumber is required"),
+  body("capacity")
+    .isInt({ min: 1 })
+    .withMessage("capacity must be a positive integer"),
+  body("block").optional(),
+  body("floor").optional(),
+  body("description").optional(),
   body("amenities").optional().isArray(),
   body("images").optional().isArray(),
   body("status")
     .optional()
     .isIn(["available", "full", "maintenance"])
     .withMessage("Invalid status"),
-  body("occupants").optional().isArray().withMessage("occupants must be an array"),
+  body("occupants")
+    .optional()
+    .isArray()
+    .withMessage("occupants must be an array"),
   body("occupants").custom((arr, { req }) => {
     if (arr == null || (Array.isArray(arr) && arr.length === 0)) return true;
     if (!Array.isArray(arr)) throw new Error("occupants must be an array");
@@ -52,11 +57,11 @@ export const createRoomRules = [
 
 export const updateRoomRules = [
   param("id").isMongoId().withMessage("Invalid room id"),
-  body("roomNumber").optional().trim().notEmpty(),
+  body("roomNumber").optional().notEmpty(),
   body("capacity").optional().isInt({ min: 1 }),
-  body("block").optional().trim(),
-  body("floor").optional().trim(),
-  body("description").optional().trim(),
+  body("block").optional(),
+  body("floor").optional(),
+  body("description").optional(),
   body("amenities").optional().isArray(),
   body("images").optional().isArray(),
   body("status")
@@ -78,7 +83,11 @@ export const applyForRoomRules = [
 ];
 
 export const createNoticeRules = [
-  body("title").trim().notEmpty().withMessage("Title is required").isLength({ max: 200 }),
+  body("title")
+    .trim()
+    .notEmpty()
+    .withMessage("Title is required")
+    .isLength({ max: 200 }),
   body("type")
     .trim()
     .notEmpty()
