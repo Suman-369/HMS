@@ -235,3 +235,71 @@ export function logout(req, res) {
     message: "Logout Successfully",
   });
 }
+
+export async function getUsersByRole(req, res) {
+  try {
+    const { role } = req.query;
+    if (!role) {
+      return res.status(400).json({ message: 'Role query parameter required' });
+    }
+    const users = await userModel.find({ role }).select('-password -googleId');
+    res.json({ users });
+  } catch (err) {
+    console.error('Get users error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
+
+export async function getCurrentUser(req, res) {
+  try {
+    res.json({ user: req.user });
+  } catch (err) {
+    console.error('Get current user error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
+
+export async function updateUserStatus(req, res) {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    if (!['active', 'inactive'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status. Must be active or inactive' });
+    }
+    const user = await userModel.findByIdAndUpdate(
+      id,
+      { availabilityStatus: status },
+      { new: true }
+    ).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ user, message: 'Status updated successfully' });
+  } catch (err) {
+    console.error('Update user status error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
+
+export async function toggleUserBlock(req, res) {
+  try {
+    const { id } = req.params;
+    const user = await userModel.findById(id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const isBlocked = !user.isBlocked;
+    const updatedUser = await userModel.findByIdAndUpdate(
+      id,
+      { isBlocked },
+      { new: true }
+    ).select('-password');
+    res.json({ 
+      user: updatedUser, 
+      message: isBlocked ? 'User blocked successfully' : 'User unblocked successfully' 
+    });
+  } catch (err) {
+    console.error('Toggle block error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+}

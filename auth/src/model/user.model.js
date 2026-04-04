@@ -16,6 +16,15 @@ const userSchema = new mongoose.Schema({
         type:String,
         enum:['student','staff','admin'],
         default:'student'
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
+    },
+    availabilityStatus: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active'
     }
 },{timestamps:true})
 
