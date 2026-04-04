@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import config from "../config/config.js";
 import '../models/task.model.js';
 import '../models/user.model.js';
+import '../models/report.model.js';
+import '../models/complaint.model.js';
 
 async function ConnectDB() {
   try {

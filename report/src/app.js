@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookies from 'cookie-parser';
 import taskRoutes from './routes/task.routes.js';
+import reportRoutes from './routes/report.routes.js';
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/report', taskRoutes);
+app.use('/api/report/reports', reportRoutes);
 
 // 404 handler - after routes
 app.use((req, res) => {
