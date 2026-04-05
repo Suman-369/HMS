@@ -27,6 +27,10 @@ export const verifyToken = async (req, res, next) => {
 };
 
 export const isAdmin = (req, res, next) => {
+  // Allow students to view public staff directory
+  if (req.path === '/users' && req.query.role === 'staff' && req.user.role === 'student') {
+    return next();
+  }
   if (req.user.role !== 'admin') {
     return res.status(403).json({ message: 'Admin access required' });
   }

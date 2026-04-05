@@ -35,6 +35,7 @@ router.post("/logout", authController.logout);
 router.get("/me", verifyToken, authController.getCurrentUser);
 
 router.get("/users", verifyToken, isAdmin, authController.getUsersByRole);
+router.get("/staff-directory", authController.getPublicStaffDirectory);
 
 router.put("/users/:id/status", verifyToken, isAdmin, authController.updateUserStatus);
 

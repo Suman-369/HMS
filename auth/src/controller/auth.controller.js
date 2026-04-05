@@ -313,3 +313,13 @@ export async function toggleUserBlock(req, res) {
     res.status(500).json({ message: 'Server error' });
   }
 }
+
+export async function getPublicStaffDirectory(req, res) {
+  try {
+    const users = await userModel.find({ role: 'staff', isBlocked: false }).select('fullname role availabilityStatus email');
+    res.json({ users });
+  } catch (err) {
+    console.error('Get staff directory error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
