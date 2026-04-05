@@ -300,16 +300,26 @@ export async function getRecentActivities(req, res) {
       .lean();
 
     // Fetch recent complaints from complaint service
-    const complaintRes = await fetch(
-      "http://localhost:3003/api/staff/complaints?limit=5&sort=-updatedAt",
-      {
-        headers: {
-          Authorization: req.headers.authorization,
+    let recentComplaints = [];
+    try {
+      const complaintServiceUrl = process.env.COMPLAINT_SERVICE_URL || "http://localhost:3003";
+      const complaintRes = await fetch(
+        `${complaintServiceUrl}/api/staff/complaints?limit=5&sort=-updatedAt`,
+        {
+          headers: {
+            Authorization: req.headers.authorization,
+          },
         },
-      },
-    );
-    const complaintData = await complaintRes.json();
-    const recentComplaints = complaintData.complaints || [];
+      );
+      if (complaintRes.ok) {
+        const complaintData = await complaintRes.json();
+        recentComplaints = complaintData.complaints || [];
+      } else {
+        console.warn(`Complaint service returned ${complaintRes.status}`);
+      }
+    } catch (fetchErr) {
+      console.error("Failed to fetch complaints for activities:", fetchErr.message);
+    }
 
     // Format unified activities
     const activities = [];
