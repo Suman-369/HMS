@@ -62,12 +62,16 @@ export async function register(req, res) {
     { expiresIn: "7d" },
   );
 
-  await publishToQueue("user_created", {
-    id: user._id,
-    email: user.email,
-    fullname: user.fullname,
-    role: user.role,
-  });
+  try {
+    await publishToQueue("user_created", {
+      id: user._id,
+      email: user.email,
+      fullname: user.fullname,
+      role: user.role,
+    });
+  } catch (err) {
+    console.error("Failed to publish to queue:", err);
+  }
 
   res.cookie("token", token, {
     httpOnly: true,
@@ -121,7 +125,8 @@ export async function googleAuthCallback(req, res) {
       role: isUserAlreadyExist.role,
     };
 
-    const redirectUrl = new URL("http://localhost:5173/auth/success");
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const redirectUrl = new URL(`${frontendUrl}/auth-success`);
     redirectUrl.searchParams.append("user", JSON.stringify(userPayload));
     redirectUrl.searchParams.append("token", token);
 
@@ -137,12 +142,16 @@ export async function googleAuthCallback(req, res) {
     },
   });
 
-  await publishToQueue("user_created", {
-    id: newUser._id,
-    email: newUser.email,
-    fullname: newUser.fullname,
-    role: newUser.role,
-  });
+  try {
+    await publishToQueue("user_created", {
+      id: newUser._id,
+      email: newUser.email,
+      fullname: newUser.fullname,
+      role: newUser.role,
+    });
+  } catch (err) {
+    console.error("Failed to publish to queue:", err);
+  }
 
   const token = jwt.sign(
     {
@@ -168,7 +177,8 @@ export async function googleAuthCallback(req, res) {
     role: newUser.role,
   };
 
-  const redirectUrl = new URL("http://localhost:5173/auth/success");
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const redirectUrl = new URL(`${frontendUrl}/auth-success`);
   redirectUrl.searchParams.append("user", JSON.stringify(userPayload));
   redirectUrl.searchParams.append("token", token);
 
