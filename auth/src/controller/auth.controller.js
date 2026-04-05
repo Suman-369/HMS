@@ -125,7 +125,7 @@ export async function googleAuthCallback(req, res) {
       role: isUserAlreadyExist.role,
     };
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.FRONTEND_URL || "https://hms-369.netlify.app";
     const redirectUrl = new URL(`${frontendUrl}/auth-success`);
     redirectUrl.searchParams.append("user", JSON.stringify(userPayload));
     redirectUrl.searchParams.append("token", token);
@@ -177,7 +177,7 @@ export async function googleAuthCallback(req, res) {
     role: newUser.role,
   };
 
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const frontendUrl = process.env.FRONTEND_URL || "https://hms-369.netlify.app";
   const redirectUrl = new URL(`${frontendUrl}/auth-success`);
   redirectUrl.searchParams.append("user", JSON.stringify(userPayload));
   redirectUrl.searchParams.append("token", token);
