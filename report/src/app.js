@@ -8,7 +8,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'], // Vite + other services
+  origin: process.env.FRONTEND_URL || true,
   credentials: true
 }));
 
