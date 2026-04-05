@@ -38,8 +38,7 @@ passport.use(
     {
       clientID: config.GOOGLE_CLIENT_ID,
       clientSecret: config.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/auth/google/callback",
-      proxy: true,
+      callbackURL: process.env.GOOGLE_CALLBACK_URL || "https://hms-ghzz.onrender.com/api/auth/google/callback",
     },
     (accessToken, refreshToken, profile, done) => {
       // Here you can handle the user profile and create or find a user in your database
