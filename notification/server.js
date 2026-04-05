@@ -15,6 +15,8 @@ async function start() {
 
 start();
 
-app.listen(3001, () => {
-  console.log("Notification service is running on port 3001");
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`Notification service is running on port ${PORT}`);
 });

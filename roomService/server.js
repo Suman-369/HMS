@@ -2,7 +2,9 @@ import app from "./src/app.js";
 import connectDB from "./src/db/db.js";
 
 connectDB().then(() => {
-  app.listen(3002, () => {
-    console.log("Room Service is running on port 3002");
+
+  const PORT = process.env.PORT || 3002;
+  app.listen(PORT, () => {
+    console.log(`Room Service is running on port ${PORT}`);
   });
 });
